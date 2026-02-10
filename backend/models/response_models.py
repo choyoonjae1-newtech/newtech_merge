@@ -10,6 +10,7 @@ class YearlyFinancial(BaseModel):
     equity: int  # 자본
     revenue: int  # 매출
     operating_profit: int  # 영업이익
+    net_income: int  # 당기순이익
 
 
 class BorrowerInfo(BaseModel):
@@ -22,7 +23,8 @@ class BorrowerInfo(BaseModel):
 class GuarantorInfo(BaseModel):
     """연대보증인 정보"""
     name: str
-    credit_score: int
+    credit_score_kcb: int
+    credit_score_nice: int
     direct_debt: int
     guarantee_debt: int
 
@@ -37,12 +39,41 @@ class PropertyBasicInfo(BaseModel):
     address: str
 
 
+class OwnershipEntry(BaseModel):
+    """소유지분현황 (갑구)"""
+    name: str
+    reg_number: str
+    share: str
+    address: str
+    rank_number: int
+
+class OwnershipOtherEntry(BaseModel):
+    """소유지분 제외 소유권 사항 (갑구)"""
+    rank_number: int
+    purpose: str
+    receipt_info: str
+    details: str
+
+class MortgageEntry(BaseModel):
+    """(근)저당권 및 전세권 등 (을구)"""
+    rank_number: str
+    purpose: str
+    receipt_info: str
+    main_details: str
+    target_owner: str
+
+class RightsAnalysisDetail(BaseModel):
+    """AI 권리 분석 - 항목별 요약"""
+    gap_summary: str     # 갑구 요약
+    eul_summary: str     # 을구 요약
+    seizure_summary: str # 가압류 요약
+    priority_summary: str # 선순위 요약
+
 class PropertyRightsInfo(BaseModel):
     """담보 물건 권리 정보"""
-    gap_section: str
-    eul_section: str
-    seizure: Optional[str]
-    priority_rank: int
+    ownership_entries: list  # 소유지분현황 (갑구)
+    ownership_other_entries: list  # 소유지분 제외 소유권 사항 (갑구)
+    mortgage_entries: list  # (근)저당권 및 전세권 등 (을구)
     max_bond_amount: int  # 선순위 채권최고액 (원)
     tenant_deposit: int   # 선순위 임차보증금 (원)
 
@@ -98,7 +129,7 @@ class LocationScores(BaseModel):
 class AIAnalysis(BaseModel):
     """AI 분석 결과"""
     property_analysis: str
-    rights_analysis: str
+    rights_analysis: RightsAnalysisDetail
     market_analysis: str
     comprehensive_opinion: Optional[str] = None  # AI 종합 의견
     location_scores: Optional[LocationScores] = None

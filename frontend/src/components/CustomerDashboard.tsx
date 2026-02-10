@@ -216,6 +216,19 @@ export default function CustomerDashboard({ user, onLogout }: CustomerDashboardP
                   </div>
                 </div>
                 <div className="apply-field">
+                  <label>적용금리</label>
+                  <div className="apply-amount-row">
+                    <input
+                      type="text"
+                      value="7.5"
+                      disabled
+                      readOnly
+                      className="rate-input-readonly"
+                    />
+                    <span className="unit">%</span>
+                  </div>
+                </div>
+                <div className="apply-field">
                   <label>신청 대출기간 *</label>
                   <div className="apply-amount-row">
                     <select
@@ -260,6 +273,7 @@ export default function CustomerDashboard({ user, onLogout }: CustomerDashboardP
                       <th>신청번호</th>
                       <th>담보물건 주소</th>
                       <th>신청금액</th>
+                      <th>금리</th>
                       <th>대출기간</th>
                       <th>신청일시</th>
                       <th>상태</th>
@@ -271,6 +285,7 @@ export default function CustomerDashboard({ user, onLogout }: CustomerDashboardP
                         <td>{app.id}</td>
                         <td>{app.property_address}</td>
                         <td>{formatAmount(app.loan_amount)}</td>
+                        <td>7.5%</td>
                         <td>{app.loan_duration}개월</td>
                         <td>{app.created_at}</td>
                         <td>

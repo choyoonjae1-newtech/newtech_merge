@@ -35,6 +35,7 @@ export default function BorrowerInfo({ data }: BorrowerInfoProps) {
                 <th>자본</th>
                 <th>매출</th>
                 <th>영업이익</th>
+                <th>당기순이익</th>
               </tr>
             </thead>
             <tbody>
@@ -46,6 +47,7 @@ export default function BorrowerInfo({ data }: BorrowerInfoProps) {
                   <td>{formatAmount(yearData.equity)}</td>
                   <td>{formatAmount(yearData.revenue)}</td>
                   <td>{formatAmount(yearData.operating_profit)}</td>
+                  <td>{formatAmount(yearData.net_income)}</td>
                 </tr>
               ))}
             </tbody>

@@ -4,9 +4,11 @@ interface LtvCalculationProps {
   rightsData: PropertyRightsData;
   creditData: CreditSourcesData;
   loanAmount: number;
+  interestRate?: number;
+  loanDuration?: number;
 }
 
-export default function LtvCalculation({ rightsData, creditData, loanAmount }: LtvCalculationProps) {
+export default function LtvCalculation({ rightsData, creditData, loanAmount, interestRate = 7.5, loanDuration = 12 }: LtvCalculationProps) {
   const maxBond = rightsData.max_bond_amount || 0;
   const tenantDeposit = rightsData.tenant_deposit || 0;
   const loan = loanAmount || 0;
@@ -56,6 +58,14 @@ export default function LtvCalculation({ rightsData, creditData, loanAmount }: L
           <tr>
             <td className="ltv-label">③ 대출신청금액</td>
             <td className="ltv-amount">{formatEok(loan)}</td>
+          </tr>
+          <tr>
+            <td className="ltv-label">④ 적용금리</td>
+            <td className="ltv-amount">{interestRate}%</td>
+          </tr>
+          <tr>
+            <td className="ltv-label">⑤ 대출기간</td>
+            <td className="ltv-amount">{loanDuration}개월</td>
           </tr>
           <tr className="ltv-total-row">
             <td className="ltv-label">합계 (①+②+③)</td>

@@ -47,8 +47,10 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
   const [appLoading, setAppLoading] = useState<boolean>(false);
   const [showAppRegistryModal, setShowAppRegistryModal] = useState<boolean>(false);
 
-  // 직접조회 대출금액
+  // 직접조회 대출금액, 금리, 대출기간
   const [directLoanAmount, setDirectLoanAmount] = useState<number>(0);
+  const [directInterestRate, setDirectInterestRate] = useState<number>(7.5);
+  const [directLoanDuration, setDirectLoanDuration] = useState<number>(12);
 
   // 심사역 종합 의견
   const [auditorOpinion, setAuditorOpinion] = useState<string>('');
@@ -75,8 +77,10 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
     }
   };
 
-  const handleAnalyze = async (company: string, address: string, loanAmount: number) => {
+  const handleAnalyze = async (company: string, address: string, loanAmount: number, interestRate: number, duration: number) => {
     setDirectLoanAmount(parseInt(String(loanAmount)));
+    setDirectInterestRate(interestRate);
+    setDirectLoanDuration(duration);
     setLoading(true);
     setError(null);
     try {
@@ -150,7 +154,9 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
     data: AnalysisResponse,
     showModal: boolean,
     setShowModal: (v: boolean) => void,
-    loanAmount: number
+    loanAmount: number,
+    interestRate: number = 7.5,
+    loanDuration: number = 12
   ) => (
     <div className="content-layout">
       <div className="layout-row">
@@ -160,17 +166,10 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
           locationScores={data.ai_analysis.location_scores}
         />
       </div>
-      <div className="layout-row">
-        <PropertyRightsInfo
-          data={data.property_rights_info}
-          onViewPDF={() => setShowModal(true)}
-        />
-        <AIRightsAnalysis analysis={data.ai_analysis.rights_analysis} />
-      </div>
       <div className="layout-row-market">
         <div className="market-left">
           <CreditSources data={data.credit_data} />
-          <PriceCharts data={data.credit_data} loanDuration={selectedApp?.loan_duration || 12} />
+          <PriceCharts data={data.credit_data} loanDuration={loanDuration} />
         </div>
         <div className="market-right">
           <AIMarketAnalysis analysis={data.ai_analysis.market_analysis} />
@@ -187,6 +186,13 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
       </div>
 
       <div className="layout-row">
+        <PropertyRightsInfo
+          data={data.property_rights_info}
+          onViewPDF={() => setShowModal(true)}
+        />
+        <AIRightsAnalysis analysis={data.ai_analysis.rights_analysis} />
+      </div>
+      <div className="layout-row">
         <BorrowerInfo data={data.borrower_info} />
         <GuarantorInfo data={data.guarantor_info} />
       </div>
@@ -196,6 +202,8 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
           rightsData={data.property_rights_info}
           creditData={data.credit_data}
           loanAmount={loanAmount}
+          interestRate={interestRate}
+          loanDuration={loanDuration}
         />
       </div>
 
@@ -270,10 +278,6 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
 
       {showModal && (
         <RegistryModal
-          data={{
-            ...data.property_rights_info,
-            address: data.property_basic_info.address
-          }}
           onClose={() => setShowModal(false)}
         />
       )}
@@ -397,12 +401,16 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
                   <table className="report-table">
                     <tbody>
                       <tr>
-                        <th>갑구 (소유권)</th>
-                        <td colSpan={3}>{ri.gap_section}</td>
+                        <th>소유자</th>
+                        <td colSpan={3}>{ri.ownership_entries?.[0]?.name ?? '-'} ({ri.ownership_entries?.[0]?.share ?? '-'})</td>
                       </tr>
                       <tr>
                         <th>을구 (근저당)</th>
-                        <td colSpan={3}>{ri.eul_section}</td>
+                        <td colSpan={3}>
+                          {ri.mortgage_entries?.map((m: { rank_number: string; purpose: string; main_details: string }, i: number) => (
+                            <div key={i}>{m.rank_number}. {m.purpose} - {m.main_details.split('\n')[0]}</div>
+                          ))}
+                        </td>
                       </tr>
                       <tr>
                         <th>선순위 채권최고액</th>
@@ -410,10 +418,14 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
                         <th>선순위 임차보증금</th>
                         <td>{formatAmount(ri.tenant_deposit)}</td>
                       </tr>
-                      {ri.seizure && (
+                      {ri.ownership_other_entries?.length > 0 && (
                         <tr className="warning-row">
                           <th>특이사항</th>
-                          <td colSpan={3} className="warning">{ri.seizure}</td>
+                          <td colSpan={3} className="warning">
+                            {ri.ownership_other_entries.map((e: { purpose: string; details: string }, i: number) => (
+                              <div key={i}>{e.purpose}: {e.details.split('\n')[0]}</div>
+                            ))}
+                          </td>
                         </tr>
                       )}
                     </tbody>
@@ -836,7 +848,7 @@ h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bott
             )}
 
             {analysisData && !loading && renderAnalysisResult(
-              analysisData, showRegistryModal, setShowRegistryModal, directLoanAmount
+              analysisData, showRegistryModal, setShowRegistryModal, directLoanAmount, directInterestRate, directLoanDuration
             )}
 
             {!analysisData && !loading && !error && (
@@ -864,6 +876,7 @@ h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bott
                         <th>대표이사</th>
                         <th>담보물건 주소</th>
                         <th>신청금액</th>
+                        <th>금리</th>
                         <th>대출기간</th>
                         <th>신청일시</th>
                         <th>상태</th>
@@ -878,6 +891,7 @@ h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bott
                           <td>{app.ceo_name}</td>
                           <td className="address-cell">{app.property_address}</td>
                           <td>{formatAmount(app.loan_amount)}</td>
+                          <td>7.5%</td>
                           <td>{app.loan_duration}개월</td>
                           <td>{app.created_at}</td>
                           <td>
@@ -913,6 +927,7 @@ h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bott
                     <span>업체: <strong>{selectedApp.company_name}</strong></span>
                     <span>대표: <strong>{selectedApp.ceo_name}</strong></span>
                     <span>신청금액: <strong>{formatAmount(selectedApp.loan_amount)}</strong></span>
+                    <span>금리: <strong>7.5%</strong></span>
                     <span>대출기간: <strong>{selectedApp.loan_duration}개월</strong></span>
                     <span style={getStatusBadge(selectedApp.status)}>
                       {selectedApp.status}
@@ -928,7 +943,7 @@ h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bott
                 )}
 
                 {appAnalysisData && !appLoading && renderAnalysisResult(
-                  appAnalysisData, showAppRegistryModal, setShowAppRegistryModal, selectedApp.loan_amount
+                  appAnalysisData, showAppRegistryModal, setShowAppRegistryModal, selectedApp.loan_amount, 7.5, selectedApp.loan_duration
                 )}
               </div>
             )}

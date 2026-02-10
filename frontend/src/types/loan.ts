@@ -8,15 +8,39 @@ export interface PropertyBasicData {
   location_score: number;
 }
 
+// 소유지분현황 (갑구)
+export interface OwnershipEntry {
+  name: string;
+  reg_number: string;
+  share: string;
+  address: string;
+  rank_number: number;
+}
+
+// 소유지분 제외 소유권 사항 (갑구)
+export interface OwnershipOtherEntry {
+  rank_number: number;
+  purpose: string;
+  receipt_info: string;
+  details: string;
+}
+
+// (근)저당권 및 전세권 등 (을구)
+export interface MortgageEntry {
+  rank_number: string;
+  purpose: string;
+  receipt_info: string;
+  main_details: string;
+  target_owner: string;
+}
+
 // 담보 물건 권리 정보
 export interface PropertyRightsData {
-  gap_section: string;
-  eul_section: string;
-  seizure?: string;
-  priority_rank: number;
+  ownership_entries: OwnershipEntry[];
+  ownership_other_entries: OwnershipOtherEntry[];
+  mortgage_entries: MortgageEntry[];
   max_bond_amount?: number;
   tenant_deposit?: number;
-  owner?: string;
 }
 
 // 차주 재무 데이터 (연도별)
@@ -27,6 +51,7 @@ export interface FinancialYearData {
   equity: number;
   revenue: number;
   operating_profit: number;
+  net_income: number;
 }
 
 // 차주 정보
@@ -39,7 +64,8 @@ export interface BorrowerData {
 // 연대보증인 정보
 export interface GuarantorData {
   name: string;
-  credit_score: number;
+  credit_score_kcb: number;
+  credit_score_nice: number;
   direct_debt: number;
   guarantee_debt: number;
 }
@@ -73,13 +99,12 @@ export interface CreditSourcesData {
   naver_listings: NaverListings;
 }
 
-// 등기부등본 모달 데이터
-export interface RegistryModalData {
-  address: string;
-  owner?: string;
-  gap_section: string;
-  eul_section: string;
-  seizure?: string;
+// AI 권리 분석 - 항목별 요약
+export interface RightsAnalysisDetail {
+  gap_summary: string;
+  eul_summary: string;
+  seizure_summary: string;
+  priority_summary: string;
 }
 
 // 사용자 정보
@@ -146,7 +171,7 @@ export interface LocationScores {
 // AI 분석 결과
 export interface AiAnalysis {
   property_analysis: string;
-  rights_analysis: string;
+  rights_analysis: RightsAnalysisDetail;
   market_analysis: string;
   comprehensive_opinion: string;
   location_scores?: LocationScores;

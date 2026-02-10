@@ -230,6 +230,12 @@
   color: #666666;
 }
 
+.rate-input-readonly {
+  background-color: #F5F5F5 !important;
+  color: #666666 !important;
+  cursor: not-allowed;
+}
+
 .duration-select {
   flex: 1;
   padding: 12px;

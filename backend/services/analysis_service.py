@@ -1,4 +1,4 @@
-from models.response_models import AnalysisData, AnalysisResponse, AIAnalysis
+from models.response_models import AnalysisData, AnalysisResponse, AIAnalysis, RightsAnalysisDetail
 from services.dummy_data import (
     generate_borrower_info,
     generate_guarantor_info,
@@ -77,8 +77,12 @@ def perform_full_analysis(
     #     nearby_trends, price_per_pyeong, loan_amount, ltv_current, ltv_jb
     # )
     # comprehensive_opinion = claude_client.analyze(comprehensive_prompt)
+    # 가압류 존재 여부 확인 (갑구 기타사항에서)
+    has_seizure = any('가압류' in e.purpose or '가처분' in e.purpose for e in property_rights_info.ownership_other_entries)
+    seizure_text = '가압류 1건 존재하여 해소 조건 부과 필요.' if has_seizure else '가압류 등 특이사항 없음.'
+
     comprehensive_opinion = f"""[입지] {property_address} 소재 물건은 역세권·학군·대단지 요건을 갖추고 있으며, 입지 종합 등급 A로 담보 적격성이 양호합니다.
-[권리] 갑구 소유권 이전 이력 정상이며, 을구 선순위 근저당 {property_rights_info.max_bond_amount // 100000000}억원 설정 확인. {('가압류 1건 존재하여 해소 조건 부과 필요.' if property_rights_info.seizure else '가압류 등 특이사항 없음.')}
+[권리] 갑구 소유권 이전 이력 정상이며, 을구 선순위 근저당 {property_rights_info.max_bond_amount // 100000000}억원 설정 확인. {seizure_text}
 [시세] KB 추정가 기준 최근 3개월 시세 흐름이 안정적이며, 국토부 실거래가·네이버 호가 모두 유사 수준으로 시세 신뢰도가 높습니다.
 [유사물건] 반경 500m 내 유사 {len(nearby_trends.similar_properties)}개 단지의 최근 3개월 평균 변동률은 {avg_change:+.1f}%로, 인근 시세가 {'상승' if avg_change > 0 else '하락' if avg_change < 0 else '보합'} 추세입니다.
 [평단가] 단지 평단가는 최근 3개월간 {pyeong_direction} 흐름이며, 읍면동·시군구 평균 대비 {'상회' if pyeong_data and pyeong_data[-1].complex > pyeong_data[-1].dong else '유사한 수준'}하고 있습니다.
@@ -126,22 +130,12 @@ def perform_full_analysis(
 
         location_scores=location_scores,
 
-        rights_analysis="""[AI 권리 분석 결과]
-
-1. 소유권 분석
-  - 등기부등본 갑구 확인 결과 소유권 이전 이력은 정상적입니다.
-  - 현 소유자의 소유권은 적법하게 취득된 것으로 확인됩니다.
-
-2. 제한물권 분석
-  - 을구 확인 결과 기존 근저당권이 설정되어 있으며, 선순위 채권 최고액을 고려한 담보 여력 산정이 필요합니다.
-  - 가압류, 가처분 등 권리 침해 사항 존재 여부를 면밀히 확인해야 합니다.
-
-3. 특이사항
-  - 압류 등 공적 제한이 존재할 경우 대출 실행 전 해소 조건을 부과해야 합니다.
-  - 임차인 현황 확인을 통해 대항력 있는 임차권 존부를 확인할 필요가 있습니다.
-
-4. 종합 의견
-  - 권리관계 리스크는 '보통' 수준으로, 선순위 채권 및 제한사항 해소 조건 하에 담보 취득이 가능합니다.""",
+        rights_analysis=RightsAnalysisDetail(
+            gap_summary="등기부 갑구 확인 결과 현 소유자의 단독소유로 확인되며, 소유권 이전 이력은 정상적입니다. 가압류, 가처분 등 소유권 제한 사항은 존재하지 않습니다.",
+            eul_summary="을구 확인 결과 근저당권 1건이 설정되어 있으며, 근질권(채권자: 제이비우리캐피탈)이 함께 설정되어 있습니다. 채권최고액 기준 선순위 부담을 고려한 담보 여력 산정이 필요합니다.",
+            seizure_summary="갑구 및 을구에서 가압류, 가처분 등 권리 침해 사항은 확인되지 않습니다. 공적 제한 없이 담보 취득이 가능한 상태입니다.",
+            priority_summary="현재 설정된 근저당권 기준 선순위 채권최고액을 고려하여 후순위 담보 취득 시 LTV 산정이 필요하며, 임차인 현황 확인을 통해 대항력 있는 임차권 존부를 추가 확인할 필요가 있습니다."
+        ),
 
         market_analysis=f"""[AI 시세 분석 결과]
 

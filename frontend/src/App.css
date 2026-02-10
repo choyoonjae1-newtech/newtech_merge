@@ -571,6 +571,80 @@ body {
   margin: 0;
 }
 
+/* 권리 정보 섹션 */
+.rights-section {
+  margin-bottom: 16px;
+}
+
+.rights-section:last-child {
+  margin-bottom: 0;
+}
+
+.rights-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #051C48;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.rights-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.rights-table th {
+  background-color: #F0F4F8;
+  padding: 6px 8px;
+  font-weight: 600;
+  text-align: left;
+  border: 1px solid #D0D8E0;
+  color: #333;
+}
+
+.rights-table td {
+  padding: 6px 8px;
+  border: 1px solid #D0D8E0;
+  color: #333;
+  vertical-align: top;
+}
+
+.rights-empty {
+  font-size: 13px;
+  color: #999;
+  margin: 4px 0;
+}
+
+/* AI 권리 분석 섹션 */
+.ai-rights-section {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #C8E6F0;
+}
+
+.ai-rights-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.ai-rights-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #051C48;
+  margin-bottom: 6px;
+}
+
+.ai-rights-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0;
+}
+
 /* 카드 헤더 (버튼 포함) */
 .card-header {
   display: flex;
@@ -670,6 +744,12 @@ body {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+}
+
+.modal-content.registry-modal {
+  max-width: 1000px;
+  max-height: 95vh;
+  height: 95vh;
 }
 
 .modal-header {

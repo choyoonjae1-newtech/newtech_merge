@@ -16,8 +16,12 @@ export default function GuarantorInfo({ data }: GuarantorInfoProps) {
           <span className="value">{data.name}</span>
         </div>
         <div className="info-row">
-          <span className="label">신용점수:</span>
-          <span className="value">{data.credit_score}점</span>
+          <span className="label">신용점수 (KCB):</span>
+          <span className="value">{data.credit_score_kcb}점</span>
+        </div>
+        <div className="info-row">
+          <span className="label">신용점수 (NICE):</span>
+          <span className="value">{data.credit_score_nice}점</span>
         </div>
         <div className="info-row">
           <span className="label">직접채무:</span>

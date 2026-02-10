@@ -6,7 +6,8 @@ from models.response_models import (
     MOLITTransactions, NaverListings, YearlyFinancial,
     PricePoint, LocationScores,
     SimilarProperty, NearbyPropertyTrends,
-    PricePerPyeongPoint, PricePerPyeongTrend
+    PricePerPyeongPoint, PricePerPyeongTrend,
+    OwnershipEntry, OwnershipOtherEntry, MortgageEntry, RightsAnalysisDetail
 )
 
 
@@ -57,6 +58,7 @@ def generate_borrower_info(company_name: str) -> BorrowerInfo:
         equity = assets - liabilities
         revenue = int(assets * random.uniform(0.3, 0.5))  # 매출 = 자산의 30~50%
         operating_profit = int(revenue * random.uniform(0.1, 0.25))  # 영업이익률 10~25%
+        net_income = int(operating_profit * random.uniform(0.6, 0.85))  # 당기순이익 = 영업이익의 60~85%
 
         financial_data.append(YearlyFinancial(
             year=year,
@@ -64,7 +66,8 @@ def generate_borrower_info(company_name: str) -> BorrowerInfo:
             liabilities=liabilities,
             equity=equity,
             revenue=revenue,
-            operating_profit=operating_profit
+            operating_profit=operating_profit,
+            net_income=net_income
         ))
 
     return BorrowerInfo(
@@ -76,9 +79,13 @@ def generate_borrower_info(company_name: str) -> BorrowerInfo:
 
 def generate_guarantor_info() -> GuarantorInfo:
     """연대보증인 정보 생성"""
+    kcb = random.randint(700, 950)
+    nice = kcb + random.randint(-30, 30)
+    nice = max(0, min(1000, nice))
     return GuarantorInfo(
         name=random.choice(GUARANTOR_NAMES),
-        credit_score=random.randint(700, 950),
+        credit_score_kcb=kcb,
+        credit_score_nice=nice,
         direct_debt=random.randint(0, 100000000),
         guarantee_debt=random.randint(0, 50000000)
     )
@@ -106,37 +113,72 @@ def generate_property_basic_info(address: str) -> PropertyBasicInfo:
     )
 
 
+OWNER_NAMES = ["정미자", "김영수", "이정희", "박성호", "최은주", "한상민", "윤서연", "장현우"]
+
 def generate_property_rights_info() -> PropertyRightsInfo:
-    """담보 물건 권리 정보 생성"""
+    """담보 물건 권리 정보 생성 (등기부등본 주요 등기사항 요약 기반)"""
     banks = ["KB국민은행", "신한은행", "우리은행", "하나은행", "NH농협은행"]
+    lenders = ["주식회사유캐피탈대부", "주식회사에이원대부", "주식회사파란캐피탈대부"]
 
-    # 갑구 (소유권)
-    ownership_year = random.randint(2015, 2024)
-    ownership_month = random.randint(1, 12)
-    ownership_day = random.randint(1, 28)
-    gap_section = f"소유권이전 {random.randint(1, 3)}회 ({ownership_year}.{ownership_month:02d}.{ownership_day:02d})"
+    owner_name = random.choice(OWNER_NAMES)
+    reg_prefix = f"{random.randint(500, 900):03d}{random.randint(1, 12):02d}"
 
-    # 을구 (근저당) - LTV 80% 수준 유지를 위해 선순위 금액 낮게 설정
-    mortgage_amount = random.randint(1, 2) * 100000000  # 1~2억
-    mortgage_bank = random.choice(banks)
-    has_seizure = random.random() < 0.2  # 20% 확률로 가압류 존재
+    # 1. 소유지분현황 (갑구)
+    ownership_entries = [
+        OwnershipEntry(
+            name=f"{owner_name} (소유자)",
+            reg_number=f"{reg_prefix}-*******",
+            share="단독소유",
+            address=f"서울 영등포구 문래동3가 55-4 문래동메가트리움 103-{random.randint(100,2000)}",
+            rank_number=1
+        )
+    ]
 
-    if has_seizure:
-        eul_section = f"근저당 {mortgage_bank} {mortgage_amount//100000000}억원 / 가압류 1건"
-        seizure = "가압류 1건 존재"
-    else:
-        eul_section = f"근저당 {mortgage_bank} {mortgage_amount//100000000}억원"
-        seizure = None
+    # 2. 소유지분 제외 소유권 사항 (갑구) - 80% 확률로 기록사항 없음
+    ownership_other_entries = []
+    if random.random() > 0.8:
+        ownership_other_entries.append(
+            OwnershipOtherEntry(
+                rank_number=2,
+                purpose="가압류",
+                receipt_info=f"{random.randint(2023,2025)}년{random.randint(1,12)}월{random.randint(1,28)}일 제{random.randint(10000,99999)}호",
+                details=f"채권자: ○○건설 주식회사\n청구금액: 금{random.randint(3000,8000)}만원"
+            )
+        )
 
-    # 채권최고액 = 근저당 × 120%, 임차보증금 = 0.5~1.5억
-    max_bond_amount = int(mortgage_amount * 1.2)
+    # 3. (근)저당권 및 전세권 등 (을구)
+    mortgage_amount = random.randint(5, 10) * 100000000  # 5~10억
+    mortgage_bank = random.choice(lenders)
+    receipt_year = random.randint(2024, 2026)
+    receipt_month = random.randint(1, 12)
+    receipt_day = random.randint(1, 28)
+    receipt_no = random.randint(100000, 999999)
+
+    mortgage_entries = [
+        MortgageEntry(
+            rank_number=str(random.randint(5, 10)),
+            purpose="근저당권설정",
+            receipt_info=f"{receipt_year}년{receipt_month}월{receipt_day}일\n제{receipt_no}호",
+            main_details=f"채권최고액 금{mortgage_amount:,}원\n근저당권자 {mortgage_bank}",
+            target_owner=owner_name
+        ),
+        MortgageEntry(
+            rank_number=f"{random.randint(5, 10)}-1",
+            purpose="근질권",
+            receipt_info=f"{receipt_year}년{receipt_month}월{receipt_day}일\n제{receipt_no + 1}호",
+            main_details=f"채권최고액 금{mortgage_amount:,}원\n채권자 제이비우리캐피탈주식회사",
+            target_owner=owner_name
+        )
+    ]
+
+    # LTV 계산용: 채권최고액 = 선순위 근저당, 임차보증금 = 0.5~1.5억
+    max_bond_amount = mortgage_amount
     tenant_deposit = random.choice([50000000, 80000000, 100000000, 120000000, 150000000])
 
     return PropertyRightsInfo(
-        gap_section=gap_section,
-        eul_section=eul_section,
-        seizure=seizure,
-        priority_rank=1,
+        ownership_entries=[e.model_dump() for e in ownership_entries],
+        ownership_other_entries=[e.model_dump() for e in ownership_other_entries],
+        mortgage_entries=[e.model_dump() for e in mortgage_entries],
         max_bond_amount=max_bond_amount,
         tenant_deposit=tenant_deposit
     )

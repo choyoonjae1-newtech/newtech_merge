@@ -8,7 +8,7 @@ declare global {
 }
 
 interface InputSectionProps {
-  onAnalyze: (company: string, address: string, amount: number) => void;
+  onAnalyze: (company: string, address: string, amount: number, interestRate: number, duration: number) => void;
   loading: boolean;
 }
 
@@ -17,6 +17,8 @@ export default function InputSection({ onAnalyze, loading }: InputSectionProps) 
   const [address, setAddress] = useState<string>('');
   const [addressDetail, setAddressDetail] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
+  const [interestRate, setInterestRate] = useState<string>('7.5');
+  const [duration, setDuration] = useState<string>('12');
 
   const fullAddress = addressDetail ? `${address} ${addressDetail}` : address;
 
@@ -25,7 +27,7 @@ export default function InputSection({ onAnalyze, loading }: InputSectionProps) 
       alert('모든 필드를 입력해주세요.');
       return;
     }
-    onAnalyze(company, fullAddress, Number(amount));
+    onAnalyze(company, fullAddress, Number(amount), Number(interestRate), Number(duration));
   };
 
   const openAddressSearch = () => {
@@ -90,6 +92,42 @@ export default function InputSection({ onAnalyze, loading }: InputSectionProps) 
             disabled={loading}
           />
           <span className="unit">원</span>
+        </div>
+      </div>
+
+      <div className="input-group">
+        <label>금리</label>
+        <div className="amount-input">
+          <input
+            type="number"
+            value={interestRate}
+            onChange={(e) => setInterestRate(e.target.value)}
+            step="0.1"
+            min="0"
+            max="100"
+            disabled={loading}
+          />
+          <span className="unit">%</span>
+        </div>
+      </div>
+
+      <div className="input-group">
+        <label>대출기간</label>
+        <div className="amount-input">
+          <select
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            disabled={loading}
+            className="duration-select"
+          >
+            <option value="6">6개월</option>
+            <option value="12">12개월</option>
+            <option value="18">18개월</option>
+            <option value="24">24개월</option>
+            <option value="36">36개월</option>
+            <option value="48">48개월</option>
+            <option value="60">60개월</option>
+          </select>
         </div>
       </div>
 
