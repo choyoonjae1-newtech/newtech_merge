@@ -180,6 +180,9 @@ export interface AiAnalysis {
 // 유사 물건
 export interface SimilarProperty {
   name: string;
+  sido: string;
+  sigungu: string;
+  address: string;
   units: number;
   age: number;
   area: number;

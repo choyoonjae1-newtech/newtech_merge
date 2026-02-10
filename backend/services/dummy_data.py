@@ -369,7 +369,9 @@ def generate_nearby_property_trends(address: str, property_basic_info: PropertyB
         used_names.add(name)
 
         dong = random.choice(dong_list)
-        prop_address = f"서울특별시 {area}구 {dong}"
+        sido = "서울특별시"
+        sigungu = f"{area}구"
+        prop_address = f"{sido} {sigungu} {dong}"
 
         # 유사 세대수 (±200), 유사 연식 (±5년)
         sim_units = max(100, property_basic_info.units + random.randint(-200, 200))
@@ -385,6 +387,8 @@ def generate_nearby_property_trends(address: str, property_basic_info: PropertyB
 
         similar_properties.append(SimilarProperty(
             name=f"{name} {dong}",
+            sido=sido,
+            sigungu=sigungu,
             address=prop_address,
             units=sim_units,
             age=sim_age,

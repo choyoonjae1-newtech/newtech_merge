@@ -138,6 +138,8 @@ class AIAnalysis(BaseModel):
 class SimilarProperty(BaseModel):
     """인근 유사 물건"""
     name: str
+    sido: str
+    sigungu: str
     address: str
     units: int
     age: int

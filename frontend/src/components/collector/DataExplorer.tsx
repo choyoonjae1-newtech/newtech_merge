@@ -1,5 +1,7 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
+import { useQueries } from "@tanstack/react-query"
 import { useComplexes, useSigunguList } from "@/hooks/useComplexes"
+import { complexesApi } from "@/api/complexes"
 import PriceTab from "./PriceTab"
 import TransactionTab from "./TransactionTab"
 import ListingTab from "./ListingTab"
@@ -16,6 +18,8 @@ const SIDO_LIST = [
   { code: "45", name: "전북" }, { code: "46", name: "전남" }, { code: "47", name: "경북" },
   { code: "48", name: "경남" }, { code: "50", name: "제주" },
 ]
+
+const SIDO_MAP = new Map(SIDO_LIST.map((s) => [s.code, s.name]))
 
 const DataExplorer: React.FC = () => {
   const [subTab, setSubTab] = useState<DataSubTab>("prices")
@@ -41,6 +45,45 @@ const DataExplorer: React.FC = () => {
 
   const complexes: Complex[] = data?.items ?? []
 
+  // 단지 목록에서 고유 시도 코드 추출 → 시군구명 일괄 조회
+  const uniqueSidoCodes = useMemo(() => {
+    const codes = new Set<string>()
+    complexes.forEach((c) => {
+      if (c.region_code && c.region_code.length >= 2) {
+        codes.add(c.region_code.slice(0, 2))
+      }
+    })
+    return [...codes]
+  }, [complexes])
+
+  const sigunguQueries = useQueries({
+    queries: uniqueSidoCodes.map((code) => ({
+      queryKey: ["sigungu", code],
+      queryFn: () => complexesApi.getSigunguList(code),
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+
+  // region_code 5자리 → 시군구명 맵
+  const sigunguMap = useMemo(() => {
+    const map = new Map<string, string>()
+    sigunguQueries.forEach((q) => {
+      if (q.data) {
+        q.data.forEach((sg) => map.set(sg.code, sg.name))
+      }
+    })
+    return map
+  }, [sigunguQueries])
+
+  // region_code → "시도 시군구" 라벨
+  const getRegionLabel = (c: Complex): string => {
+    if (c.address) return c.address
+    if (!c.region_code) return ""
+    const sidoName = SIDO_MAP.get(c.region_code.slice(0, 2)) ?? ""
+    const sigunguName = sigunguMap.get(c.region_code.slice(0, 5)) ?? ""
+    return sigunguName ? `${sidoName} ${sigunguName}` : sidoName
+  }
+
   const handleSearchChange = (value: string) => {
     setSearch(value)
     clearTimeout(debounceRef.current)
@@ -58,11 +101,6 @@ const DataExplorer: React.FC = () => {
   const handleSigunguSelect = (code: string) => {
     setSelectedSigungu(code)
     setSelectedComplexId(null)
-  }
-
-  const handleComplexSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
-    setSelectedComplexId(val ? Number(val) : null)
   }
 
   const handleClearRegion = () => {
@@ -157,32 +195,28 @@ const DataExplorer: React.FC = () => {
           <input
             className="collector-search-input"
             type="text"
-            placeholder="단지명 검색..."
+            placeholder="단지명을 입력하세요..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            style={{ maxWidth: 240 }}
+            style={{ maxWidth: 320 }}
           />
-          <select
-            className="collector-select"
-            value={selectedComplexId ?? ""}
-            onChange={handleComplexSelect}
-            style={{ flex: 1, maxWidth: 400 }}
-          >
-            <option value="">-- 단지를 선택하세요 ({complexes.length}개) --</option>
-            {complexes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.address})
-              </option>
-            ))}
-          </select>
+          <span style={{ fontSize: 13, color: "#999" }}>
+            {complexes.length}개 단지
+          </span>
         </div>
 
-        {selectedComplex && (
-          <div style={{ fontSize: 13, color: "#666", marginTop: 8 }}>
-            선택: <strong style={{ color: "#333" }}>{selectedComplex.name}</strong>
-            {" - "}
-            {selectedComplex.address}
-            {selectedComplex.region_code && ` (${selectedComplex.region_code})`}
+        {complexes.length > 0 && (
+          <div className="complex-list-grid">
+            {complexes.map((c) => (
+              <div
+                key={c.id}
+                className={`complex-list-item ${selectedComplexId === c.id ? "selected" : ""}`}
+                onClick={() => setSelectedComplexId(c.id)}
+              >
+                <span className="complex-list-name">{c.name}</span>
+                <span className="complex-list-address">{getRegionLabel(c)}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

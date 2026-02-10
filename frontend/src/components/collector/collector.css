@@ -863,19 +863,54 @@
   white-space: nowrap;
 }
 
-.data-explorer-selector select {
-  flex: 1;
-  max-width: 400px;
-  padding: 10px 14px;
+/* ---------- Complex List ---------- */
+.complex-list-grid {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 4px;
   border: 1px solid #E0E0E0;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: 'Noto Sans KR', sans-serif;
+  border-radius: 6px;
 }
 
-.data-explorer-selector select:focus {
-  outline: none;
-  border-color: #006FBD;
+.complex-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.complex-list-item:last-child {
+  border-bottom: none;
+}
+
+.complex-list-item:hover {
+  background-color: #F0F6FF;
+}
+
+.complex-list-item.selected {
+  background-color: #E8F1FC;
+}
+
+.complex-list-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  white-space: nowrap;
+  min-width: 160px;
+}
+
+.complex-list-item.selected .complex-list-name {
+  color: #006FBD;
+}
+
+.complex-list-address {
+  font-size: 13px;
+  color: #888888;
 }
 
 /* ---------- Chart Container ---------- */

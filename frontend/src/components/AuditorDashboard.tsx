@@ -12,6 +12,7 @@ import AIMarketAnalysis from './AIMarketAnalysis';
 import RegistryModal from './RegistryModal';
 import MonitoringTab from './MonitoringTab';
 import NearbyPropertyMap from './NearbyPropertyMap';
+import NearbyPropertyList from './NearbyPropertyList';
 import PricePerPyeongChart from './PricePerPyeongChart';
 import LtvCalculation from './LtvCalculation';
 import AiComprehensiveOpinion from './AiComprehensiveOpinion';
@@ -159,6 +160,7 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
     loanDuration: number = 12
   ) => (
     <div className="content-layout">
+      <h2 className="section-divider">담보 물건 분석</h2>
       <div className="layout-row">
         <PropertyBasicInfo data={data.property_basic_info} />
         <AIPropertyAnalysis
@@ -166,6 +168,8 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
           locationScores={data.ai_analysis.location_scores}
         />
       </div>
+
+      <h2 className="section-divider">시세 분석</h2>
       <div className="layout-row-market">
         <div className="market-left">
           <CreditSources data={data.credit_data} />
@@ -175,16 +179,24 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
           <AIMarketAnalysis analysis={data.ai_analysis.market_analysis} />
         </div>
       </div>
+
+      <h2 className="section-divider">유사 물건 분석</h2>
       <div className="layout-row">
         <NearbyPropertyMap
           data={data.nearby_property_trends}
           targetAddress={data.property_basic_info.address}
         />
+        <NearbyPropertyList
+          data={data.nearby_property_trends}
+        />
+      </div>
+      <div className="layout-row-full">
         <PricePerPyeongChart
           data={data.price_per_pyeong_trend}
         />
       </div>
 
+      <h2 className="section-divider">권리 분석</h2>
       <div className="layout-row">
         <PropertyRightsInfo
           data={data.property_rights_info}
@@ -192,11 +204,14 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
         />
         <AIRightsAnalysis analysis={data.ai_analysis.rights_analysis} />
       </div>
+
+      <h2 className="section-divider">차주 분석</h2>
       <div className="layout-row">
         <BorrowerInfo data={data.borrower_info} />
         <GuarantorInfo data={data.guarantor_info} />
       </div>
 
+      <h2 className="section-divider">LTV 분석</h2>
       <div className="layout-row-full">
         <LtvCalculation
           rightsData={data.property_rights_info}
@@ -207,6 +222,7 @@ export default function AuditorDashboard({ user, onLogout }: AuditorDashboardPro
         />
       </div>
 
+      <h2 className="section-divider">AI 종합 의견 및 심사역 의견</h2>
       <div className="layout-row-full">
         <AiComprehensiveOpinion opinion={data.ai_analysis.comprehensive_opinion} />
       </div>

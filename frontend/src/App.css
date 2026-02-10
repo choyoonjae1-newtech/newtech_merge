@@ -180,6 +180,17 @@ body {
   gap: 24px;
 }
 
+.section-divider {
+  font-size: 18px;
+  font-weight: 700;
+  color: #051C48;
+  margin: 8px 0 -8px;
+  padding: 10px 14px;
+  border-left: 4px solid #006FBD;
+  background-color: #F0F4FA;
+  border-radius: 0 6px 6px 0;
+}
+
 .layout-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -136,6 +136,26 @@ export default function PriceCharts({ data, loanDuration = 12 }: PriceChartsProp
 
   const { combined: jbData, isUptrend, latestJbPrice } = buildJbFairPriceData();
 
+  // 3개 차트 공통 Y축 범위 (KB, 실거래가, 매매호가)
+  const allPrices = [
+    ...kbData.map(d => d.price),
+    ...molitData.map(d => d.price),
+    ...naverData.map(d => d.price),
+  ];
+  const priceMin = Math.min(...allPrices);
+  const priceMax = Math.max(...allPrices);
+  const priceMargin = Math.max(Math.round((priceMax - priceMin) * 0.15), 50000000);
+  const sharedYMin = Math.max(0, Math.floor((priceMin - priceMargin) / 100000000) * 100000000);
+  const sharedYMax = Math.ceil((priceMax + priceMargin) / 100000000) * 100000000;
+
+  // JB 적정 시세 차트 Y축 오토스케일
+  const jbPrices = jbData.map(d => d.jbPrice ?? d.predictedPrice ?? 0).filter(v => v > 0);
+  const jbMin = Math.min(...jbPrices);
+  const jbMax = Math.max(...jbPrices);
+  const jbMargin = Math.max(Math.round((jbMax - jbMin) * 0.15), 50000000);
+  const jbYMin = Math.max(0, Math.floor((jbMin - jbMargin) / 100000000) * 100000000);
+  const jbYMax = Math.ceil((jbMax + jbMargin) / 100000000) * 100000000;
+
   const JbTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
@@ -181,6 +201,7 @@ export default function PriceCharts({ data, loanDuration = 12 }: PriceChartsProp
                 interval={Math.floor(kbData.length / 4)}
               />
               <YAxis
+                domain={[sharedYMin, sharedYMax]}
                 tickFormatter={formatPrice}
                 tick={{ fontSize: 10 }}
                 width={60}
@@ -210,6 +231,7 @@ export default function PriceCharts({ data, loanDuration = 12 }: PriceChartsProp
               />
               <YAxis
                 dataKey="price"
+                domain={[sharedYMin, sharedYMax]}
                 tickFormatter={formatPrice}
                 tick={{ fontSize: 10 }}
                 width={60}
@@ -236,6 +258,7 @@ export default function PriceCharts({ data, loanDuration = 12 }: PriceChartsProp
               />
               <YAxis
                 dataKey="price"
+                domain={[sharedYMin, sharedYMax]}
                 tickFormatter={formatPrice}
                 tick={{ fontSize: 10 }}
                 width={60}
@@ -272,6 +295,7 @@ export default function PriceCharts({ data, loanDuration = 12 }: PriceChartsProp
               interval={Math.floor(jbData.length / 6)}
             />
             <YAxis
+              domain={[jbYMin, jbYMax]}
               tickFormatter={formatPrice}
               tick={{ fontSize: 10 }}
               width={65}

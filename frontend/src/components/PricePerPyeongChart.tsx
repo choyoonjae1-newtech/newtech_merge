@@ -12,6 +12,14 @@ interface PricePerPyeongChartProps {
 export default function PricePerPyeongChart({ data }: PricePerPyeongChartProps) {
   if (!data) return null;
 
+  // 오토 스케일: 데이터 최소/최대에서 ±5% 마진
+  const allValues = data.data.flatMap((d) => [d.complex, d.dong, d.sigungu]);
+  const dataMin = Math.min(...allValues);
+  const dataMax = Math.max(...allValues);
+  const margin = Math.max(Math.round((dataMax - dataMin) * 0.15), 50);
+  const yMin = Math.max(0, Math.floor((dataMin - margin) / 100) * 100);
+  const yMax = Math.ceil((dataMax + margin) / 100) * 100;
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -41,6 +49,7 @@ export default function PricePerPyeongChart({ data }: PricePerPyeongChartProps) 
           <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />
           <YAxis
+            domain={[yMin, yMax]}
             tickFormatter={(v: number) => `${v.toLocaleString()}`}
             tick={{ fontSize: 11 }}
             width={70}
