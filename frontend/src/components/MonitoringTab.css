@@ -1,0 +1,340 @@
+/* 요약 카드 */
+.monitoring-summary {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 3px solid #E0E0E0;
+}
+
+.summary-card.total { border-top-color: #006FBD; }
+.summary-card.green { border-top-color: #4CAF50; }
+.summary-card.yellow { border-top-color: #FFC107; }
+.summary-card.red { border-top-color: #EF5350; }
+.summary-card.amount { border-top-color: #9C27B0; }
+.summary-card.ltv { border-top-color: #7DCCE5; }
+
+.summary-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #999999;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333333;
+}
+
+/* 테이블 */
+.monitoring-table-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.monitoring-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.monitoring-table-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0;
+}
+
+.monitoring-count {
+  font-size: 13px;
+  color: #999999;
+  font-weight: 500;
+}
+
+/* 필터 바 */
+.monitoring-filters {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: #F9FAFB;
+  border-radius: 6px;
+  border: 1px solid #E0E0E0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #999999;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  background-color: #FFFFFF;
+  color: #333333;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #006FBD;
+}
+
+.filter-clear-btn {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid #006FBD;
+  color: #006FBD;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.filter-clear-btn:hover {
+  background-color: #006FBD;
+  color: #FFFFFF;
+}
+
+/* 정렬 가능 헤더 */
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s;
+}
+
+.sortable-th:hover {
+  background-color: #EAEAEA;
+}
+
+.sort-icon {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.sort-icon.inactive {
+  color: #CCCCCC;
+}
+
+.sort-icon.active {
+  color: #006FBD;
+}
+
+.empty-table-text {
+  text-align: center;
+  color: #999999;
+  padding: 48px 0 !important;
+  font-size: 14px;
+}
+
+.monitoring-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.monitoring-table th {
+  background-color: #F5F5F5;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #666666;
+  border-bottom: 2px solid #E0E0E0;
+  white-space: nowrap;
+}
+
+.monitoring-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid #F5F5F5;
+  color: #333333;
+}
+
+.monitoring-table .address-cell {
+  text-align: left;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitoring-table .loan-id-cell {
+  font-weight: 600;
+  color: #006FBD;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.clickable-row:hover {
+  background-color: #E8F6FA;
+}
+
+.ltv-cell.red {
+  color: #EF5350;
+  font-weight: 700;
+}
+
+.ltv-cell.yellow {
+  color: #F57F17;
+  font-weight: 600;
+}
+
+.ltv-cell.green {
+  color: #2E7D32;
+}
+
+.ltv-change.up {
+  color: #EF5350;
+  font-weight: 600;
+}
+
+.ltv-change.down {
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+/* 상세 모달 */
+.monitoring-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.monitoring-modal {
+  background-color: #F5F5F5;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 1400px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.monitoring-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px;
+  background-color: #051C48;
+  color: #FFFFFF;
+  border-radius: 12px 12px 0 0;
+}
+
+.monitoring-modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: #7DCCE5;
+  margin: 0;
+}
+
+.monitoring-modal-header .modal-close-btn {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.monitoring-modal-header .modal-close-btn:hover {
+  opacity: 1;
+}
+
+/* 대출 요약 바 */
+.monitoring-loan-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 16px 24px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.loan-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ls-label {
+  font-size: 11px;
+  color: #999999;
+  font-weight: 500;
+}
+
+.ls-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.ls-value.green { color: #2E7D32; }
+.ls-value.yellow { color: #F57F17; }
+.ls-value.red { color: #EF5350; }
+
+/* 모달 본문 */
+.monitoring-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+@media (max-width: 1200px) {
+  .monitoring-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .monitoring-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,961 @@
+import { useState, useEffect } from 'react';
+import InputSection from './InputSection';
+import BorrowerInfo from './BorrowerInfo';
+import GuarantorInfo from './GuarantorInfo';
+import PropertyBasicInfo from './PropertyBasicInfo';
+import PropertyRightsInfo from './PropertyRightsInfo';
+import CreditSources from './CreditSources';
+import PriceCharts from './PriceCharts';
+import AIPropertyAnalysis from './AIPropertyAnalysis';
+import AIRightsAnalysis from './AIRightsAnalysis';
+import AIMarketAnalysis from './AIMarketAnalysis';
+import RegistryModal from './RegistryModal';
+import MonitoringTab from './MonitoringTab';
+import NearbyPropertyMap from './NearbyPropertyMap';
+import PricePerPyeongChart from './PricePerPyeongChart';
+import LtvCalculation from './LtvCalculation';
+import AiComprehensiveOpinion from './AiComprehensiveOpinion';
+import CollectorDashboard from './collector/CollectorDashboard';
+import RunList from './collector/RunList';
+import DataExplorer from './collector/DataExplorer';
+import { analyzeProperty } from '@/api/analysis';
+import { getApplications, updateApplicationStatus } from '@/api/applications';
+import { addMonitoringLoan } from '@/api/monitoring';
+import type { User, LoanApplication, AnalysisResponse } from '@/types/loan';
+import './AuditorDashboard.css';
+
+type ActiveTab = 'dashboard' | 'direct' | 'applications' | 'monitoring' | 'collector' | 'runs' | 'dataExplorer';
+
+interface AuditorDashboardProps {
+  user: User;
+  onLogout: () => void;
+}
+
+export default function AuditorDashboard({ user, onLogout }: AuditorDashboardProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+
+  // 직접조회 상태
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [analysisData, setAnalysisData] = useState<AnalysisResponse | null>(null);
+  const [showRegistryModal, setShowRegistryModal] = useState<boolean>(false);
+
+  // 신청건 상태
+  const [applications, setApplications] = useState<LoanApplication[]>([]);
+  const [selectedApp, setSelectedApp] = useState<LoanApplication | null>(null);
+  const [appAnalysisData, setAppAnalysisData] = useState<AnalysisResponse | null>(null);
+  const [appLoading, setAppLoading] = useState<boolean>(false);
+  const [showAppRegistryModal, setShowAppRegistryModal] = useState<boolean>(false);
+
+  // 직접조회 대출금액
+  const [directLoanAmount, setDirectLoanAmount] = useState<number>(0);
+
+  // 심사역 종합 의견
+  const [auditorOpinion, setAuditorOpinion] = useState<string>('');
+  const [opinionSaved, setOpinionSaved] = useState<boolean>(false);
+  const [showReviewReport, setShowReviewReport] = useState<boolean>(false);
+  const [showApproveConfirm, setShowApproveConfirm] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'applications') {
+      fetchApplications();
+    }
+  }, [activeTab]);
+
+  const fetchApplications = async () => {
+    try {
+      const data = await getApplications();
+      setApplications(data);
+    } catch (err) {
+      console.error('Failed to fetch applications:', err);
+    }
+  };
+
+  const handleAnalyze = async (company: string, address: string, loanAmount: number) => {
+    setDirectLoanAmount(parseInt(String(loanAmount)));
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await analyzeProperty(company, address, loanAmount);
+      setAnalysisData(response);
+    } catch (err: any) {
+      setError(err.message || '분석 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppAnalyze = async (app: LoanApplication) => {
+    setSelectedApp(app);
+    setAppLoading(true);
+    setAppAnalysisData(null);
+    try {
+      const response = await analyzeProperty(
+        app.company_name,
+        app.property_address,
+        app.loan_amount
+      );
+      setAppAnalysisData(response);
+    } catch (err) {
+      console.error('Analysis error:', err);
+    } finally {
+      setAppLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (appId: string, status: string) => {
+    try {
+      await updateApplicationStatus(appId, status);
+      fetchApplications();
+      if (selectedApp && selectedApp.id === appId) {
+        setSelectedApp(prev => prev ? { ...prev, status } : prev);
+      }
+    } catch (err) {
+      console.error('Status update failed:', err);
+    }
+  };
+
+  const formatAmount = (value: number | undefined | null): string => {
+    if (!value) return '-';
+    return `${(value / 100000000).toFixed(1)}억원`;
+  };
+
+  const getStatusBadge = (status: string): React.CSSProperties => {
+    const colors: Record<string, string> = {
+      '접수완료': '#006FBD',
+      '심사중': '#051C48',
+      '승인': '#20c997',
+      '반려': '#EF5350'
+    };
+    return {
+      backgroundColor: colors[status] || '#999',
+      color: '#FFFFFF',
+      padding: '4px 12px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '600'
+    };
+  };
+
+  const handleSaveOpinion = () => {
+    setOpinionSaved(true);
+    setTimeout(() => setOpinionSaved(false), 2000);
+  };
+
+  const renderAnalysisResult = (
+    data: AnalysisResponse,
+    showModal: boolean,
+    setShowModal: (v: boolean) => void,
+    loanAmount: number
+  ) => (
+    <div className="content-layout">
+      <div className="layout-row">
+        <PropertyBasicInfo data={data.property_basic_info} />
+        <AIPropertyAnalysis
+          analysis={data.ai_analysis.property_analysis}
+          locationScores={data.ai_analysis.location_scores}
+        />
+      </div>
+      <div className="layout-row">
+        <PropertyRightsInfo
+          data={data.property_rights_info}
+          onViewPDF={() => setShowModal(true)}
+        />
+        <AIRightsAnalysis analysis={data.ai_analysis.rights_analysis} />
+      </div>
+      <div className="layout-row-market">
+        <div className="market-left">
+          <CreditSources data={data.credit_data} />
+          <PriceCharts data={data.credit_data} loanDuration={selectedApp?.loan_duration || 12} />
+        </div>
+        <div className="market-right">
+          <AIMarketAnalysis analysis={data.ai_analysis.market_analysis} />
+        </div>
+      </div>
+      <div className="layout-row">
+        <NearbyPropertyMap
+          data={data.nearby_property_trends}
+          targetAddress={data.property_basic_info.address}
+        />
+        <PricePerPyeongChart
+          data={data.price_per_pyeong_trend}
+        />
+      </div>
+
+      <div className="layout-row">
+        <BorrowerInfo data={data.borrower_info} />
+        <GuarantorInfo data={data.guarantor_info} />
+      </div>
+
+      <div className="layout-row-full">
+        <LtvCalculation
+          rightsData={data.property_rights_info}
+          creditData={data.credit_data}
+          loanAmount={loanAmount}
+        />
+      </div>
+
+      <div className="layout-row-full">
+        <AiComprehensiveOpinion opinion={data.ai_analysis.comprehensive_opinion} />
+      </div>
+
+      <div className="layout-row-full">
+        <div className="opinion-card">
+          <h3>심사역 종합 의견</h3>
+          <textarea
+            className="opinion-textarea"
+            placeholder="심사 종합 의견을 입력하세요..."
+            value={auditorOpinion}
+            onChange={(e) => setAuditorOpinion(e.target.value)}
+            rows={5}
+          />
+          <div className="opinion-footer">
+            {opinionSaved && (
+              <span className="opinion-saved-msg">저장되었습니다.</span>
+            )}
+            <button
+              className="opinion-save-btn"
+              onClick={handleSaveOpinion}
+              disabled={!auditorOpinion.trim()}
+            >
+              저장
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="final-actions">
+        <button
+          className="final-btn reject"
+          onClick={() => {
+            if (selectedApp) handleStatusUpdate(selectedApp.id, '반려');
+          }}
+        >
+          거절
+        </button>
+        <button
+          className="final-btn approve"
+          onClick={async () => {
+            if (selectedApp) {
+              handleStatusUpdate(selectedApp.id, '승인');
+              try {
+                await addMonitoringLoan({
+                  auditor_name: user.ceo_name || user.user_id,
+                  company_name: data.borrower_info.company_name,
+                  ceo_name: selectedApp.ceo_name,
+                  property_address: data.property_basic_info.address,
+                  loan_amount: selectedApp.loan_amount,
+                  execution_price: data.credit_data.kb_price.estimated
+                });
+              } catch (err) {
+                console.error('Monitoring registration failed:', err);
+              }
+              setShowApproveConfirm(true);
+            }
+          }}
+        >
+          승인
+        </button>
+        <button
+          className="final-btn report"
+          onClick={() => setShowReviewReport(true)}
+        >
+          심사의견서 생성
+        </button>
+      </div>
+
+      {showModal && (
+        <RegistryModal
+          data={{
+            ...data.property_rights_info,
+            address: data.property_basic_info.address
+          }}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {showReviewReport && (() => {
+        const ri = data.property_rights_info;
+        const kb = data.credit_data.kb_price;
+        const molit = data.credit_data.molit_transactions;
+        const naver = data.credit_data.naver_listings;
+        const ls = data.ai_analysis.location_scores;
+        const totalPrior = (ri.max_bond_amount || 0) + (ri.tenant_deposit || 0) + loanAmount;
+        const ltvCurrent = kb.estimated > 0 ? (totalPrior / kb.estimated * 100).toFixed(1) : '-';
+        const ltvJB = kb.low > 0 ? (totalPrior / kb.low * 100).toFixed(1) : '-';
+        const nearbyProps = data.nearby_property_trends?.similar_properties || [];
+        const pyeongData = data.price_per_pyeong_trend?.data || [];
+
+        return (
+        <div className="modal-overlay" onClick={() => setShowReviewReport(false)}>
+          <div className="modal-content review-report-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>심사의견서</h2>
+              <button className="modal-close-btn" onClick={() => setShowReviewReport(false)}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <div className="review-report-document">
+                <div className="report-title">
+                  <h3>담보대출 심사의견서</h3>
+                  <p className="report-date">작성일: {new Date().toLocaleDateString('ko-KR')}</p>
+                </div>
+
+                {/* 1. 기본 정보 */}
+                <div className="report-section">
+                  <h4>1. 기본 정보</h4>
+                  <table className="report-table">
+                    <tbody>
+                      <tr>
+                        <th>대부업체명</th>
+                        <td>{data.borrower_info.company_name}</td>
+                        <th>사업자등록번호</th>
+                        <td>{data.borrower_info.business_number}</td>
+                      </tr>
+                      <tr>
+                        <th>담보물건 주소</th>
+                        <td colSpan={3}>{data.property_basic_info.address}</td>
+                      </tr>
+                      <tr>
+                        <th>전용면적</th>
+                        <td>{data.property_basic_info.area}평</td>
+                        <th>복도타입</th>
+                        <td>{data.property_basic_info.corridor_type}</td>
+                      </tr>
+                      <tr>
+                        <th>세대수</th>
+                        <td>{data.property_basic_info.units}세대</td>
+                        <th>경과연수</th>
+                        <td>{data.property_basic_info.age}년</td>
+                      </tr>
+                      <tr>
+                        <th>입지점수</th>
+                        <td>{data.property_basic_info.location_score}점</td>
+                        <th>대출신청금액</th>
+                        <td>{formatAmount(loanAmount)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 2. 차주 재무 정보 */}
+                <div className="report-section">
+                  <h4>2. 차주 재무 정보 (최근 3개년)</h4>
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>연도</th>
+                        <th>총자산</th>
+                        <th>총부채</th>
+                        <th>자기자본</th>
+                        <th>매출액</th>
+                        <th>영업이익</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.borrower_info.financial_data.map((f) => (
+                        <tr key={f.year}>
+                          <td>{f.year}년</td>
+                          <td>{formatAmount(f.assets)}</td>
+                          <td>{formatAmount(f.liabilities)}</td>
+                          <td>{formatAmount(f.equity)}</td>
+                          <td>{formatAmount(f.revenue)}</td>
+                          <td>{formatAmount(f.operating_profit)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 3. 연대보증인 정보 */}
+                <div className="report-section">
+                  <h4>3. 연대보증인(대표자) 정보</h4>
+                  <table className="report-table">
+                    <tbody>
+                      <tr>
+                        <th>성명</th>
+                        <td>{data.guarantor_info.name}</td>
+                        <th>신용점수</th>
+                        <td>{data.guarantor_info.credit_score}점</td>
+                      </tr>
+                      <tr>
+                        <th>직접채무</th>
+                        <td>{formatAmount(data.guarantor_info.direct_debt)}</td>
+                        <th>보증채무</th>
+                        <td>{formatAmount(data.guarantor_info.guarantee_debt)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 4. 등기 권리관계 */}
+                <div className="report-section">
+                  <h4>4. 등기 권리관계</h4>
+                  <table className="report-table">
+                    <tbody>
+                      <tr>
+                        <th>갑구 (소유권)</th>
+                        <td colSpan={3}>{ri.gap_section}</td>
+                      </tr>
+                      <tr>
+                        <th>을구 (근저당)</th>
+                        <td colSpan={3}>{ri.eul_section}</td>
+                      </tr>
+                      <tr>
+                        <th>선순위 채권최고액</th>
+                        <td>{formatAmount(ri.max_bond_amount)}</td>
+                        <th>선순위 임차보증금</th>
+                        <td>{formatAmount(ri.tenant_deposit)}</td>
+                      </tr>
+                      {ri.seizure && (
+                        <tr className="warning-row">
+                          <th>특이사항</th>
+                          <td colSpan={3} className="warning">{ri.seizure}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 5. 시세 정보 */}
+                <div className="report-section">
+                  <h4>5. 시세 정보</h4>
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>구분</th>
+                        <th>시세</th>
+                        <th>추세</th>
+                        <th>비고</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>KB 추정가</td>
+                        <td>{formatAmount(kb.estimated)}</td>
+                        <td>{kb.trend}</td>
+                        <td>하한 {formatAmount(kb.low)} ~ 상한 {formatAmount(kb.high)}</td>
+                      </tr>
+                      <tr>
+                        <td>국토부 실거래가</td>
+                        <td>{formatAmount(molit.recent_price)}</td>
+                        <td>{molit.trend}</td>
+                        <td>거래일 {molit.transaction_date}</td>
+                      </tr>
+                      <tr>
+                        <td>네이버 매매호가</td>
+                        <td>{formatAmount(naver.avg_asking)}</td>
+                        <td>{naver.trend}</td>
+                        <td>매물 {naver.listing_count}건</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 6. 산출 LTV */}
+                <div className="report-section">
+                  <h4>6. 산출 LTV</h4>
+                  <table className="report-table">
+                    <tbody>
+                      <tr>
+                        <th>① 선순위 근저당권</th>
+                        <td>{formatAmount(ri.max_bond_amount)}</td>
+                        <th>② 선순위 임차인</th>
+                        <td>{formatAmount(ri.tenant_deposit)}</td>
+                      </tr>
+                      <tr>
+                        <th>③ 대출신청금액</th>
+                        <td>{formatAmount(loanAmount)}</td>
+                        <th>합계 (①+②+③)</th>
+                        <td style={{fontWeight:700}}>{formatAmount(totalPrior)}</td>
+                      </tr>
+                      <tr>
+                        <th>현재 시세 기준 LTV</th>
+                        <td>{ltvCurrent}% (KB 추정가 {formatAmount(kb.estimated)})</td>
+                        <th>JB 적정시세 기준 LTV</th>
+                        <td>{ltvJB}% (KB 하한가 {formatAmount(kb.low)})</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 7. 입지 분석 점수 */}
+                {ls && (
+                <div className="report-section">
+                  <h4>7. AI 입지 분석 점수</h4>
+                  <table className="report-table score-table">
+                    <thead>
+                      <tr>
+                        <th>인접역 거리</th>
+                        <th>업무지구 이동시간</th>
+                        <th>세대수/연식</th>
+                        <th>초등학교 거리</th>
+                        <th>생활환경</th>
+                        <th>자연환경</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{ls.station_walk}점</td>
+                        <td>{ls.commute_time}점</td>
+                        <td>{ls.units_score}점</td>
+                        <td>{ls.school_walk}점</td>
+                        <td>{ls.living_env}점</td>
+                        <td>{ls.nature_env}점</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                )}
+
+                {/* 8. 인근 유사물건 동향 */}
+                {nearbyProps.length > 0 && (
+                <div className="report-section">
+                  <h4>8. 인근 유사물건 동향</h4>
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>단지명</th>
+                        <th>세대수</th>
+                        <th>연식</th>
+                        <th>면적</th>
+                        <th>최근 거래가</th>
+                        <th>3개월 변동률</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {nearbyProps.map((p, i) => (
+                        <tr key={i}>
+                          <td>{p.name}</td>
+                          <td>{p.units}세대</td>
+                          <td>{p.age}년</td>
+                          <td>{p.area}평</td>
+                          <td>{formatAmount(p.recent_price)}</td>
+                          <td style={{color: p.price_change_rate >= 0 ? '#20c997' : '#EF5350'}}>
+                            {(p.price_change_rate * 100).toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                )}
+
+                {/* 9. 평단가 추이 */}
+                {pyeongData.length > 0 && (
+                <div className="report-section">
+                  <h4>9. 단지/읍면동/시군구 평단가 추이</h4>
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>월</th>
+                        <th>{data.price_per_pyeong_trend?.complex_name || '단지'} (만원/평)</th>
+                        <th>{data.price_per_pyeong_trend?.dong_name || '읍면동'} (만원/평)</th>
+                        <th>{data.price_per_pyeong_trend?.sigungu_name || '시군구'} (만원/평)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pyeongData.map((d, i) => (
+                        <tr key={i}>
+                          <td>{d.date}</td>
+                          <td>{d.complex.toLocaleString()}</td>
+                          <td>{d.dong.toLocaleString()}</td>
+                          <td>{d.sigungu.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                )}
+
+                {/* 10. AI 종합 의견 */}
+                <div className="report-section">
+                  <h4>10. AI 종합 의견</h4>
+                  <div className="report-opinion-box">
+                    {data.ai_analysis.comprehensive_opinion || '(AI 종합 의견 없음)'}
+                  </div>
+                </div>
+
+                {/* 11. 심사역 종합 의견 */}
+                <div className="report-section">
+                  <h4>11. 심사역 종합 의견</h4>
+                  <div className="report-opinion-box">
+                    {auditorOpinion || '(의견 미입력)'}
+                  </div>
+                </div>
+
+                {/* 12. 심사 결과 */}
+                <div className="report-section">
+                  <h4>12. 심사 결과</h4>
+                  <div className="report-result approved">승인</div>
+                </div>
+
+                <div className="report-footer">
+                  <p>심사자: {user.ceo_name || user.user_id}</p>
+                  <p>작성일시: {new Date().toLocaleString('ko-KR')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-primary" onClick={() => {
+                const reportEl = document.querySelector('.review-report-document');
+                if (!reportEl) return;
+                const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>심사의견서</title>
+<style>
+body{font-family:'Malgun Gothic',sans-serif;padding:40px;color:#333;max-width:900px;margin:0 auto}
+h3{text-align:center;margin-bottom:4px}
+.report-date{text-align:center;color:#666;font-size:13px;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th,td{border:1px solid #ccc;padding:8px 12px;font-size:13px;text-align:left}
+th{background:#f5f5f5;font-weight:600}
+h4{margin:20px 0 8px;font-size:14px;border-bottom:2px solid #051C48;padding-bottom:4px;color:#051C48}
+.report-opinion-box{border:1px solid #ddd;padding:12px;min-height:60px;border-radius:4px;white-space:pre-wrap;font-size:13px;line-height:1.8}
+.report-result{text-align:center;font-size:18px;font-weight:700;padding:12px;border-radius:8px}
+.approved{background:#e6f9f0;color:#20c997}
+.report-footer{margin-top:30px;text-align:right;font-size:12px;color:#666;border-top:1px solid #ccc;padding-top:12px}
+.warning{color:#EF5350}
+</style></head><body>${reportEl.innerHTML}</body></html>`;
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `심사의견서_${data.borrower_info.company_name}_${new Date().toISOString().slice(0,10)}.html`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}>다운로드</button>
+              <button className="btn-primary" style={{ backgroundColor: '#666' }} onClick={() => setShowReviewReport(false)}>닫기</button>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
+
+      {showApproveConfirm && (
+        <div className="modal-overlay" onClick={() => setShowApproveConfirm(false)}>
+          <div className="modal-content approve-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="approve-confirm-body">
+              <div className="approve-confirm-icon">&#9989;</div>
+              <p className="approve-confirm-msg">승인이 완료되었습니다.<br/>사후 모니터링 화면으로 넘어가시겠습니까?</p>
+            </div>
+            <div className="approve-confirm-actions">
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setShowApproveConfirm(false);
+                  setActiveTab('monitoring');
+                }}
+              >
+                이동
+              </button>
+              <button
+                className="btn-primary"
+                style={{ backgroundColor: '#666' }}
+                onClick={() => setShowApproveConfirm(false)}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="auditor-dashboard">
+      <header className="dashboard-header">
+        <div className="header-left">
+          <img
+            src="/capital_CI.png"
+            alt="JB우리캐피탈"
+            className="header-logo clickable"
+            onClick={() => setActiveTab('dashboard')}
+          />
+          <span className="header-divider">|</span>
+          <h1>질권 담보 대출 업무 플랫폼</h1>
+        </div>
+        <div className="header-right">
+          <span className="user-info">심사자: {user.ceo_name || user.user_id}</span>
+          <button className="logout-btn" onClick={onLogout}>로그아웃</button>
+        </div>
+      </header>
+
+      <div className="dashboard-body">
+        <nav className="sidebar">
+          <button
+            className={`sidebar-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            대시보드
+          </button>
+          <button
+            className={`sidebar-btn ${activeTab === 'direct' ? 'active' : ''}`}
+            onClick={() => setActiveTab('direct')}
+          >
+            직접조회하기
+          </button>
+          <button
+            className={`sidebar-btn ${activeTab === 'applications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('applications')}
+          >
+            대부업체 신청건
+            {applications.filter(a => a.status === '접수완료').length > 0 && (
+              <span className="badge">
+                {applications.filter(a => a.status === '접수완료').length}
+              </span>
+            )}
+          </button>
+          <button
+            className={`sidebar-btn ${activeTab === 'monitoring' ? 'active' : ''}`}
+            onClick={() => setActiveTab('monitoring')}
+          >
+            사후모니터링
+          </button>
+          <div className="sidebar-divider" />
+          <button
+            className={`sidebar-btn ${activeTab === 'collector' ? 'active' : ''}`}
+            onClick={() => setActiveTab('collector')}
+          >
+            데이터 수집 관리
+          </button>
+          <button
+            className={`sidebar-btn ${activeTab === 'runs' ? 'active' : ''}`}
+            onClick={() => setActiveTab('runs')}
+          >
+            수집 실행 이력
+          </button>
+          <button
+            className={`sidebar-btn ${activeTab === 'dataExplorer' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dataExplorer')}
+          >
+            시세 데이터 탐색
+          </button>
+        </nav>
+
+        <div className="dashboard-content">
+        {/* 대시보드 탭 */}
+        {activeTab === 'dashboard' && (
+          <div className="main-dashboard">
+            <h2 className="main-dashboard-title">
+              {user.ceo_name || user.user_id}님, 환영합니다.
+            </h2>
+
+            <div className="dashboard-cards">
+              <div className="dash-card pending">
+                <div className="dash-card-header">
+                  <span className="dash-card-icon">&#128203;</span>
+                  <span className="dash-card-label">신규 접수 신청건</span>
+                </div>
+                <div className="dash-card-body">
+                  <span className="dash-card-count">
+                    {applications.filter(a => a.status === '접수완료').length}
+                  </span>
+                  <span className="dash-card-unit">건</span>
+                </div>
+                <p className="dash-card-desc">승인/반려 처리가 되지 않은 신청건</p>
+                <button
+                  className="dash-card-link"
+                  onClick={() => setActiveTab('applications')}
+                >
+                  바로가기 &rarr;
+                </button>
+              </div>
+
+              <div className="dash-card reviewing">
+                <div className="dash-card-header">
+                  <span className="dash-card-icon">&#128269;</span>
+                  <span className="dash-card-label">심사중</span>
+                </div>
+                <div className="dash-card-body">
+                  <span className="dash-card-count">
+                    {applications.filter(a => a.status === '심사중').length}
+                  </span>
+                  <span className="dash-card-unit">건</span>
+                </div>
+                <p className="dash-card-desc">현재 심사가 진행 중인 건</p>
+                <button
+                  className="dash-card-link"
+                  onClick={() => setActiveTab('applications')}
+                >
+                  바로가기 &rarr;
+                </button>
+              </div>
+
+              <div className="dash-card approved">
+                <div className="dash-card-header">
+                  <span className="dash-card-icon">&#9989;</span>
+                  <span className="dash-card-label">승인 완료</span>
+                </div>
+                <div className="dash-card-body">
+                  <span className="dash-card-count">
+                    {applications.filter(a => a.status === '승인').length}
+                  </span>
+                  <span className="dash-card-unit">건</span>
+                </div>
+                <p className="dash-card-desc">승인 처리된 대출 신청건</p>
+              </div>
+
+              <div className="dash-card rejected">
+                <div className="dash-card-header">
+                  <span className="dash-card-icon">&#10060;</span>
+                  <span className="dash-card-label">반려</span>
+                </div>
+                <div className="dash-card-body">
+                  <span className="dash-card-count">
+                    {applications.filter(a => a.status === '반려').length}
+                  </span>
+                  <span className="dash-card-unit">건</span>
+                </div>
+                <p className="dash-card-desc">반려 처리된 대출 신청건</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 직접조회하기 탭 */}
+        {activeTab === 'direct' && (
+          <div className="direct-tab">
+            <InputSection onAnalyze={handleAnalyze} loading={loading} />
+
+            {error && (
+              <div className="error-message">
+                <p>{error}</p>
+                <button onClick={() => setError(null)}>닫기</button>
+              </div>
+            )}
+
+            {loading && (
+              <div className="loading-message">
+                <div className="spinner"></div>
+                <p>분석 중입니다. 잠시만 기다려주세요...</p>
+              </div>
+            )}
+
+            {analysisData && !loading && renderAnalysisResult(
+              analysisData, showRegistryModal, setShowRegistryModal, directLoanAmount
+            )}
+
+            {!analysisData && !loading && !error && (
+              <div className="empty-state">
+                <p>업체명, 담보주소, 대출신청금액을 입력하고 분석 버튼을 눌러주세요.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 대부업체 신청건 탭 */}
+        {activeTab === 'applications' && (
+          <div className="applications-tab">
+            {!selectedApp ? (
+              <div className="app-list-card">
+                <h2>대부업체 신청 목록</h2>
+                {applications.length === 0 ? (
+                  <p className="empty-text">접수된 신청건이 없습니다.</p>
+                ) : (
+                  <table className="app-table">
+                    <thead>
+                      <tr>
+                        <th>신청번호</th>
+                        <th>대부업체명</th>
+                        <th>대표이사</th>
+                        <th>담보물건 주소</th>
+                        <th>신청금액</th>
+                        <th>대출기간</th>
+                        <th>신청일시</th>
+                        <th>상태</th>
+                        <th>심사</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applications.map((app) => (
+                        <tr key={app.id}>
+                          <td>{app.id}</td>
+                          <td>{app.company_name}</td>
+                          <td>{app.ceo_name}</td>
+                          <td className="address-cell">{app.property_address}</td>
+                          <td>{formatAmount(app.loan_amount)}</td>
+                          <td>{app.loan_duration}개월</td>
+                          <td>{app.created_at}</td>
+                          <td>
+                            <span style={getStatusBadge(app.status)}>
+                              {app.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="review-btn"
+                              onClick={() => handleAppAnalyze(app)}
+                            >
+                              상세심사
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ) : (
+              <div className="app-detail">
+                <div className="app-detail-header">
+                  <button
+                    className="back-to-list-btn"
+                    onClick={() => { setSelectedApp(null); setAppAnalysisData(null); }}
+                  >
+                    목록으로 돌아가기
+                  </button>
+                  <div className="app-detail-info">
+                    <span>신청번호: <strong>{selectedApp.id}</strong></span>
+                    <span>업체: <strong>{selectedApp.company_name}</strong></span>
+                    <span>대표: <strong>{selectedApp.ceo_name}</strong></span>
+                    <span>신청금액: <strong>{formatAmount(selectedApp.loan_amount)}</strong></span>
+                    <span>대출기간: <strong>{selectedApp.loan_duration}개월</strong></span>
+                    <span style={getStatusBadge(selectedApp.status)}>
+                      {selectedApp.status}
+                    </span>
+                  </div>
+                </div>
+
+                {appLoading && (
+                  <div className="loading-message">
+                    <div className="spinner"></div>
+                    <p>신청건 분석 중입니다...</p>
+                  </div>
+                )}
+
+                {appAnalysisData && !appLoading && renderAnalysisResult(
+                  appAnalysisData, showAppRegistryModal, setShowAppRegistryModal, selectedApp.loan_amount
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 사후모니터링 탭 */}
+        {activeTab === 'monitoring' && (
+          <MonitoringTab />
+        )}
+
+        {/* 데이터 수집 관리 탭 */}
+        {activeTab === 'collector' && (
+          <CollectorDashboard />
+        )}
+
+        {/* 수집 실행 이력 탭 */}
+        {activeTab === 'runs' && (
+          <RunList />
+        )}
+
+        {/* 시세 데이터 탐색 탭 */}
+        {activeTab === 'dataExplorer' && (
+          <DataExplorer />
+        )}
+        </div>
+      </div>
+    </div>
+  );
+}

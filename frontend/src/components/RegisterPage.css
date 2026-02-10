@@ -1,0 +1,141 @@
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #051C48 0%, #006FBD 50%, #7DCCE5 100%);
+  padding: 20px;
+}
+
+.register-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 560px;
+  overflow: hidden;
+}
+
+.register-header {
+  background-color: #051C48;
+  color: #FFFFFF;
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.register-logo {
+  height: 32px;
+  background-color: #FFFFFF;
+  padding: 6px 14px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.register-header p {
+  font-size: 14px;
+  color: #7DCCE5;
+}
+
+.register-form {
+  padding: 28px 32px;
+}
+
+.register-form h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #051C48;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E0E0E0;
+}
+
+.register-form h3:not(:first-child) {
+  margin-top: 24px;
+}
+
+.register-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.register-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.register-field label {
+  font-weight: 500;
+  font-size: 13px;
+  color: #666666;
+}
+
+.register-field input {
+  padding: 10px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.register-field input:focus {
+  outline: none;
+  border-color: #006FBD;
+  box-shadow: 0 0 0 3px rgba(0, 111, 189, 0.15);
+}
+
+.register-error {
+  color: #EF5350;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.register-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.back-btn {
+  flex: 1;
+  padding: 12px;
+  background-color: #FFFFFF;
+  color: #666666;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+  background-color: #F5F5F5;
+}
+
+.register-btn {
+  flex: 1;
+  padding: 12px;
+  background-color: #006FBD;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.register-btn:hover:not(:disabled) {
+  background-color: #005A9E;
+}
+
+.register-btn:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}

@@ -1,0 +1,119 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #051C48 0%, #006FBD 50%, #7DCCE5 100%);
+}
+
+.login-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 420px;
+  overflow: hidden;
+}
+
+.login-header {
+  background-color: #051C48;
+  color: #FFFFFF;
+  padding: 32px;
+  text-align: center;
+}
+
+.login-logo {
+  height: 36px;
+  background-color: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.login-header p {
+  font-size: 14px;
+  color: #7DCCE5;
+}
+
+.login-form {
+  padding: 32px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.login-field label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333333;
+}
+
+.login-field input {
+  padding: 12px 14px;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: #006FBD;
+  box-shadow: 0 0 0 3px rgba(0, 111, 189, 0.15);
+}
+
+.login-error {
+  color: #EF5350;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #006FBD;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.login-btn:hover:not(:disabled) {
+  background-color: #005A9E;
+}
+
+.login-btn:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: #999999;
+}
+
+.register-link {
+  background: none;
+  border: none;
+  color: #006FBD;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 8px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}

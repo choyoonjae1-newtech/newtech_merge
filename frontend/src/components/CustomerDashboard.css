@@ -1,0 +1,318 @@
+.customer-dashboard {
+  min-height: 100vh;
+  background-color: #F5F5F5;
+}
+
+.dashboard-header {
+  background-color: #051C48;
+  padding: 16px 32px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  height: 24px;
+  background-color: #FFFFFF;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.header-logo.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.header-logo.clickable:hover {
+  opacity: 0.85;
+}
+
+.header-divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 20px;
+  font-weight: 300;
+}
+
+.header-left h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  font-size: 14px;
+  color: #7DCCE5;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-body {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background-color: #051C48;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  background: none;
+  border: none;
+  border-left: 4px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.sidebar-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-btn.active {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-left-color: #7DCCE5;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.customer-dashboard .dashboard-content {
+  flex: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* 신청 폼 */
+.apply-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+.apply-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 24px;
+}
+
+.apply-info-box,
+.apply-form-box {
+  margin-bottom: 24px;
+}
+
+.apply-info-box h3,
+.apply-form-box h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #051C48;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E0E0E0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #999999;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+}
+
+.apply-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.apply-field label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333333;
+}
+
+.apply-field input {
+  padding: 12px 14px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.apply-field input:focus {
+  outline: none;
+  border-color: #006FBD;
+}
+
+.apply-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.apply-amount-row input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.apply-amount-row input:focus {
+  outline: none;
+  border-color: #006FBD;
+}
+
+.apply-amount-row .unit {
+  font-size: 14px;
+  color: #666666;
+}
+
+.duration-select {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #333333;
+  background-color: #FFFFFF;
+}
+
+.duration-select:focus {
+  outline: none;
+  border-color: #006FBD;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #006FBD;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #005A9E;
+}
+
+.submit-btn:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+/* 신청 내역 */
+.history-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+.history-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 24px;
+}
+
+.empty-text {
+  text-align: center;
+  color: #999999;
+  padding: 48px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table th {
+  background-color: #F5F5F5;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #666666;
+  border-bottom: 2px solid #E0E0E0;
+}
+
+.history-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid #F5F5F5;
+  color: #333333;
+}
+
+.history-table tbody tr:hover {
+  background-color: #FAFAFA;
+}

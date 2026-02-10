@@ -1,0 +1,98 @@
+.autocomplete-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.autocomplete-container label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #666666;
+}
+
+.autocomplete-input-wrapper {
+  position: relative;
+}
+
+.autocomplete-input-wrapper input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.autocomplete-input-wrapper input:focus {
+  outline: none;
+  border-color: #006FBD;
+}
+
+.autocomplete-input-wrapper input:disabled {
+  background-color: #F5F5F5;
+  cursor: not-allowed;
+}
+
+.autocomplete-loading {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #999999;
+}
+
+.autocomplete-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.autocomplete-suggestions li {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333333;
+  transition: background-color 0.1s;
+}
+
+.autocomplete-suggestions li:hover,
+.autocomplete-suggestions li.selected {
+  background-color: #E8F6FA;
+}
+
+.autocomplete-suggestions li:active {
+  background-color: #D4EEF5;
+}
+
+/* 스크롤바 스타일 */
+.autocomplete-suggestions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-track {
+  background: #F5F5F5;
+  border-radius: 4px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+  border-radius: 4px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
